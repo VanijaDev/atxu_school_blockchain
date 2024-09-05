@@ -1,0 +1,30 @@
+{
+  "name": "atxu_school_blockchain",
+  "version": "1.0.0",
+  "description": "Smart Contracts for ATXU School",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/VanijaDev/atxu_school_blockchain.git"
+  },
+  "keywords": [
+    "Smart",
+    "Contracts",
+    "Blockchain",
+    "ATXU",
+    "school"
+  ],
+  "author": "Ivan Solomichev",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/VanijaDev/atxu_school_blockchain/issues"
+  },
+  "homepage": "https://github.com/VanijaDev/atxu_school_blockchain#readme",
+  "devDependencies": {
+    "@nomicfoundation/hardhat-toolbox": "^5.0.0",
+    "hardhat": "^2.22.10"
+  }
+}
