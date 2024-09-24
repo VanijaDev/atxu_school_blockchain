@@ -1,12 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.27;
 
-interface IDonations {
-
-  struct DonationSummary {
-    address tokens;
-    uint256 amounts;
-  }
+import { DonationSummary } from "../structs/Structs.sol";
 
   event DonationMade(address indexed donorAddr, address indexed token, uint256 indexed amount);
 

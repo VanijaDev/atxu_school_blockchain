@@ -2,15 +2,5 @@
 pragma solidity ^0.8.27;
 
 interface ISponsors {
-  struct SponsorInfo {
-    address addr;
-    string firstName;
-    string lastName;
-    string midName;
-    uint256 dob;
-    string photoUrl;
-    string additionalInfoUrl;
-  }
-
-  function totalCount() external returns(uint256);
+  function totalCount() external view returns(uint256);
 }
