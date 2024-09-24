@@ -3,6 +3,7 @@ pragma solidity ^0.8.27;
 
 import "../interfaces/ISemesters.sol";
 import { ISemesters, SemesterInfo } from "../interfaces/ISemesters.sol";
+import { ZeroAddress, InvalidSemesterData, InvalidDataForSemester, InvalidSemester, NotStudent } from "../errors/Errors.sol";
 
 // Uncomment this line to use console.log
 // import "hardhat/console.sol";
