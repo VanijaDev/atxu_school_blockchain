@@ -6,7 +6,7 @@ import { IStudents } from "../interfaces/IStudents.sol";
 import { ISchool } from "../interfaces/ISchool.sol";
 import { StudentInfo } from "../structs/Structs.sol";
 import { HelperLib } from "../libraries/HelperLib.sol";
-import { ZeroAddress, InvalidSemesterData, InvalidDataForSemester, InvalidSemester, NotStudent, NotSchool } from "../errors/Errors.sol";
+import { ZeroAddress, InvalidSemesterDataToStart, InvalidDataForSemesterSearch, InvalidSemester, NotStudent, NotSchool } from "../errors/Errors.sol";
 
 // Uncomment this line to use console.log
 // import "hardhat/console.sol";
@@ -45,8 +45,8 @@ contract Semesters is ISemesters {
    * @param _finishedAt The finish date of the semester.
    */
   function startNextSemester(uint256 _startedAt, uint256 _finishedAt) onlySchool external {
-    require(_startedAt < _finishedAt, InvalidSemesterData());
-    require(_startedAt > _semesterInfo[semestersCount - 1].finishedAt, InvalidSemesterData());
+    require(_startedAt < _finishedAt, InvalidSemesterDataToStart());
+    require(_startedAt > _semesterInfo[semestersCount - 1].finishedAt, InvalidSemesterDataToStart());
 
     _semesterInfo[semestersCount] = SemesterInfo(semestersCount, _startedAt, _finishedAt);
 
@@ -109,7 +109,7 @@ contract Semesters is ISemesters {
     uint256 approxDuration = block.timestamp - _timestamp;
     uint256 approxSemesterCountPast = approxDuration / _avgSemesterDuration;
 
-    require(approxSemesterCountPast <= semestersCount, InvalidDataForSemester());
+    require(approxSemesterCountPast <= semestersCount, InvalidDataForSemesterSearch());
 
     uint256 approxSemesterIndex = semestersCount - approxSemesterCountPast;
     bool found;

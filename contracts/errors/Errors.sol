@@ -1,13 +1,15 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.27;
 
+  error NotSchool(address caller);
+
   error ZeroAddress();
   error InvalidStudentInfo();
   error InvalidStartIndexOrLength();
 
   error InvalidSemester();
-  error InvalidSemesterData();
-  error InvalidDataForSemester();
+  error InvalidSemesterDataToStart();
+  error InvalidDataForSemesterSearch();
   error NotStudent(address addr);
 
-  error NotSchool(address caller);
+  error InvalidSponsorDataToAdd();
