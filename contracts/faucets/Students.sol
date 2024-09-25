@@ -80,13 +80,14 @@ contract Students is IStudents {
    * @dev Get the lifetime students.
    * @param _startIndex The start index.
    * @param _length The length.
-   * @return The addresses of the students.
+   * @return result The addresses of the students.
    */
-  function studentsLifetime(uint256 _startIndex, uint256 _length) external view returns (address[] memory) {
+  function studentsLifetimeInRange(uint256 _startIndex, uint256 _length) external view returns (address[] memory result) {
     require(_startIndex < _studentsLifetime.length, InvalidStartIndexOrLength());
+    require(_length > 0, InvalidStartIndexOrLength());
     require(_startIndex + _length <= _studentsLifetime.length, InvalidStartIndexOrLength());
 
-    address[] memory result = new address[](_length);
+    result = new address[](_length);
 
     for (uint256 i = 0; i < _length; ++i) {
       result[i] = _studentsLifetime[_startIndex + i];
@@ -115,31 +116,37 @@ contract Students is IStudents {
   /**
    * @dev Check if the student data is correct.
    * @param _info The student info.
-   * @return True if the student data is correct.
+   * @return Whether the student data is correct.
    */
   function _onlyCorrectStudentData(StudentInfo calldata _info) private pure returns (bool) {
-    if (_info.addr != address(0)) {
-      return false;
-    }
+    return _info.addr != address(0) && bytes(_info.firstName).length > 0 && bytes(_info.lastName).length > 0 && _info.dob > 0 && bytes(_info.photoUrl).length > 0;
 
-    if (bytes(_info.firstName).length == 0) {
-      return false;
-    }
+    /**
+     * TODO
+     * - compare gas prices with individual if
+     * - midName & additionalInfoUrl
+     */
 
-    if (bytes(_info.lastName).length == 0) {
-      return false;
-    }
+    // if (_info.addr != address(0)) {
+    //   return false;
+    // }
 
-    if (_info.dob == 0) {
-      return false;
-    }
+    // if (bytes(_info.firstName).length == 0) {
+    //   return false;
+    // }
 
-    if (bytes(_info.photoUrl).length == 0) {
-      return false;
-    }
+    // if (bytes(_info.lastName).length == 0) {
+    //   return false;
+    // }
 
-    // midName & additionalInfoUrl are optional
+    // if (_info.dob == 0) {
+    //   return false;
+    // }
 
-    return true;
+    // if (bytes(_info.photoUrl).length == 0) {
+    //   return false;
+    // }
+
+    // return true;
   }
 }
