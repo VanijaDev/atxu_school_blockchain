@@ -2,5 +2,5 @@
 pragma solidity ^0.8.27;
 
 interface ISponsors {
-  function totalCount() external view returns(uint256);
+  function totalCount() external view returns(uint256 count);
 }
