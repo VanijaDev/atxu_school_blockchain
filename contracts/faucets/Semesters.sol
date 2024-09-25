@@ -2,10 +2,11 @@
 pragma solidity ^0.8.27;
 
 import { ISemesters, SemesterInfo } from "../interfaces/ISemesters.sol";
-import { StudentInfo } from "../structs/Structs.sol";
 import { IStudents } from "../interfaces/IStudents.sol";
 import { ISchool } from "../interfaces/ISchool.sol";
-import { ZeroAddress, InvalidSemesterData, InvalidDataForSemester, InvalidSemester, NotStudent } from "../errors/Errors.sol";
+import { StudentInfo } from "../structs/Structs.sol";
+import { HelperLib } from "../libraries/HelperLib.sol";
+import { ZeroAddress, InvalidSemesterData, InvalidDataForSemester, InvalidSemester, NotStudent, NotSchool } from "../errors/Errors.sol";
 
 // Uncomment this line to use console.log
 // import "hardhat/console.sol";
@@ -18,6 +19,14 @@ contract Semesters is ISemesters {
   mapping(uint256 => address[]) private _studentsAddressForSemester;
   mapping(address => uint256[]) private _semestersForStudent;
   mapping(address => mapping(uint256 => bool)) private _isStudentForSemester;
+
+  event SemesterStarted(uint256 indexed semesterId, uint256 startedAt);
+  event SemesterFinished(uint256 indexed semesterId, uint256 finishedAt);
+
+  modifier onlySchool() {
+    require(HelperLib._isAddressEqual(msg.sender, address(school)), NotSchool(msg.sender)); // TODO: check deployment cost and gas usage
+    _;
+  }
 
 
   /**
@@ -35,11 +44,13 @@ contract Semesters is ISemesters {
    * @param _startedAt The start date of the semester.
    * @param _finishedAt The finish date of the semester.
    */
-  function startNextSemester(uint256 _startedAt, uint256 _finishedAt) external {
+  function startNextSemester(uint256 _startedAt, uint256 _finishedAt) onlySchool external {
     require(_startedAt < _finishedAt, InvalidSemesterData());
     require(_startedAt > _semesterInfo[semestersCount - 1].finishedAt, InvalidSemesterData());
 
     _semesterInfo[semestersCount] = SemesterInfo(semestersCount, _startedAt, _finishedAt);
+
+    emit SemesterStarted(semestersCount, _startedAt);
     
     semestersCount++;
   }
@@ -47,8 +58,10 @@ contract Semesters is ISemesters {
   /**
    * @dev Finishes the current semester.
    */
-  function finishCurrentSemester() external {
+  function finishCurrentSemester() onlySchool external {
     _semesterInfo[semestersCount - 1].finishedAt = block.timestamp;
+
+    emit SemesterFinished(semestersCount - 1, block.timestamp);
 
     // TODO: implement the logic for the end of the semester
   }
@@ -196,7 +209,7 @@ contract Semesters is ISemesters {
    * @param _semesterId The semester id.
    * @param _students The students address.
    */
-  function _addStudentsToSemester(uint256 _semesterId, address[] memory _students) private {
+  function _addStudentsToSemester(uint256 _semesterId, address[] memory _students) onlySchool private {
     require(_semesterId == semestersCount - 1 || _semesterId == semestersCount, InvalidSemester());
 
     IStudents studentsContract = IStudents(school.studentsContract());

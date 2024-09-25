@@ -3,7 +3,8 @@ pragma solidity ^0.8.27;
 
 import { IStudents, StudentInfo } from "../interfaces/IStudents.sol";
 import { ISchool } from "../interfaces/ISchool.sol";
-import { ZeroAddress, InvalidStudentInfo, InvalidStartIndexOrLength } from "../errors/Errors.sol";
+import { ZeroAddress, InvalidStudentInfo, InvalidStartIndexOrLength, NotSchool } from "../errors/Errors.sol";
+import { HelperLib } from "../libraries/HelperLib.sol";
 
 // Uncomment this line to use console.log
 // import "hardhat/console.sol";
@@ -16,6 +17,11 @@ contract Students is IStudents {
 
   modifier onlyCorrectStudentData (StudentInfo calldata _info) {
     require(_onlyCorrectStudentData(_info), InvalidStudentInfo());
+    _;
+  }
+
+  modifier onlySchool() {
+    require(HelperLib._isAddressEqual(msg.sender, address(school)), NotSchool(msg.sender)); // TODO: check deployment cost and gas usage
     _;
   }
 
@@ -35,7 +41,7 @@ contract Students is IStudents {
    * @param _info The student info.
    */
 
-  function addStudent(StudentInfo calldata _info) onlyCorrectStudentData(_info) external {
+  function addStudent(StudentInfo calldata _info) onlyCorrectStudentData(_info) onlySchool external {
     address studentAddr = _info.addr;
 
     _studentsLifetime.push(studentAddr);

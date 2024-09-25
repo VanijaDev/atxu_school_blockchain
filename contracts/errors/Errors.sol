@@ -9,4 +9,5 @@ pragma solidity ^0.8.27;
   error InvalidSemesterData();
   error InvalidDataForSemester();
   error NotStudent(address addr);
-  
+
+  error NotSchool(address caller);
