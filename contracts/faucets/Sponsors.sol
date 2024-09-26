@@ -39,8 +39,7 @@ contract Sponsors is ISponsors {
   }
 
   /**
-   * @dev Gets a count of sponsors.
-   * @return count The count of sponsors.
+   * @dev See {ISponsors-totalCount}.
    */
   function totalCount() external view returns(uint256 count) {
     count = sponsors.length;

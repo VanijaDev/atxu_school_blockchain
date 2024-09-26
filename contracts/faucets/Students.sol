@@ -25,7 +25,6 @@ contract Students is IStudents {
     _;
   }
 
-
   /**
    * @dev Constructor.
    * @param _school The address of the School contract.
@@ -34,6 +33,34 @@ contract Students is IStudents {
     require(_school != address(0), ZeroAddress());
 
     school = ISchool(_school);
+  }
+
+  /**
+   * @dev See {IStudents-checkIfLifetimeStudents}.
+   */
+  function checkIfLifetimeStudents(address[] calldata _addresses) external view returns (bool[] memory) {
+    uint256 len = _addresses.length;
+    bool[] memory result = new bool[](len);
+
+    for (uint256 i = 0; i < len; ++i) {
+      result[i] = _studentInfo[_addresses[i]].addr != address(0);
+    }
+
+    return result;
+  }
+
+  /**
+   * @dev See {IStudents-studentsInfo}.
+   */
+  function studentsInfo(address[] calldata _addresses) external view returns (StudentInfo[] memory) {
+    uint256 len = _addresses.length;
+    
+    StudentInfo[] memory result = new StudentInfo[](len);
+    for (uint256 i = 0; i < len; ++i) {
+      result[i] = _studentInfo[_addresses[i]];
+    }
+
+    return result;
   }
 
   /**
@@ -49,23 +76,6 @@ contract Students is IStudents {
 
     string memory fullName = string.concat(_info.firstName, _info.midName, _info.lastName);
     studentAddressForFullName[fullName] = studentAddr;
-  }
-
-
-  /**
-   * @dev Get the student info by the address.
-   * @param _addresses The addresses of the students.
-   * @return The student info.
-   */
-  function studentsInfo(address[] calldata _addresses) external view returns (StudentInfo[] memory) {
-    uint256 len = _addresses.length;
-    
-    StudentInfo[] memory result = new StudentInfo[](len);
-    for (uint256 i = 0; i < len; ++i) {
-      result[i] = _studentInfo[_addresses[i]];
-    }
-
-    return result;
   }
 
   /**
@@ -91,22 +101,6 @@ contract Students is IStudents {
 
     for (uint256 i = 0; i < _length; ++i) {
       result[i] = _studentsLifetime[_startIndex + i];
-    }
-
-    return result;
-  }
-
-  /**
-   * @dev Check if the students are lifetime students.
-   * @param _addresses The addresses of the students.
-   * @return Whether the students are lifetime students.
-   */
-  function checkIfLifetimeStudents(address[] calldata _addresses) external view returns (bool[] memory) {
-    uint256 len = _addresses.length;
-    bool[] memory result = new bool[](len);
-
-    for (uint256 i = 0; i < len; ++i) {
-      result[i] = _studentInfo[_addresses[i]].addr != address(0);
     }
 
     return result;

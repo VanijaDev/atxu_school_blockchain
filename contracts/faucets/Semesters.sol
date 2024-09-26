@@ -40,9 +40,7 @@ contract Semesters is ISemesters {
   }
 
   /**
-   * @dev Starts the next semester.
-   * @param _startedAt The start date of the semester.
-   * @param _finishedAt The finish date of the semester.
+   * @dev See {ISemesters-startNextSemester}.
    */
   function startNextSemester(uint256 _startedAt, uint256 _finishedAt) onlySchool external {
     require(_startedAt < _finishedAt, InvalidSemesterDataToStart());
@@ -56,7 +54,7 @@ contract Semesters is ISemesters {
   }
 
   /**
-   * @dev Finishes the current semester.
+   * @dev See {ISemesters-finishCurrentSemester}.
    */
   function finishCurrentSemester() onlySchool external {
     _semesterInfo[semestersCount - 1].finishedAt = block.timestamp;
@@ -67,10 +65,7 @@ contract Semesters is ISemesters {
   }
 
   /**
-   * @dev Checks if students are in the semester.
-   * @param _semesterId Semester id.
-   * @param _addresses The addresses of the students.
-   * @return Whether the students were studying during the semester.
+   * @dev See {ISemesters-checkIfStudentsForSemester}.
    */
   function checkIfStudentsForSemester(uint256 _semesterId, address[] memory _addresses) external view returns (bool[] memory) {
     uint256 len = _addresses.length;
@@ -84,9 +79,7 @@ contract Semesters is ISemesters {
   }
 
   /**
-   * @dev Get the semesters info by the id.
-   * @param _semesterIds The ids of the semesters.
-   * @return The semesters info.
+   * @dev See {ISemesters-semestersInfo}.
    */
   function semestersInfo(uint256[] memory _semesterIds) external view returns (SemesterInfo[] memory) {
     uint256 len = _semesterIds.length;
@@ -100,10 +93,7 @@ contract Semesters is ISemesters {
   }
 
   /**
-   * @dev Get the semester for the timestamp.
-   * @param _timestamp The timestamp.
-   * @param _avgSemesterDuration The average duration of the semester.
-   * @return semesterInfo The semester info.
+   * @dev See {ISemesters-semesterForTimestamp}.
    */
   function semesterForTimestamp(uint256 _timestamp, uint256 _avgSemesterDuration) external view returns (SemesterInfo memory semesterInfo) {
     uint256 approxDuration = block.timestamp - _timestamp;
@@ -127,6 +117,20 @@ contract Semesters is ISemesters {
         }
       }
     }
+  }
+
+  /**
+   * @dev See {ISemesters-addStudentsToCurrentSemester}.
+   */
+  function addStudentsToCurrentSemester(address[] memory _addresses) external {
+    _addStudentsToSemester(semestersCount - 1, _addresses);
+  }
+
+  /**
+   * @dev See {ISemesters-addStudentsToNextSemester}.
+   */
+  function addStudentsToNextSemester(address[] memory _addresses) external {
+    _addStudentsToSemester(semestersCount, _addresses);
   }
 
   /**
@@ -185,22 +189,6 @@ contract Semesters is ISemesters {
    */
   function isStudentForSemester(uint256 _semesterId, address _student) external view returns (bool isStudent) {
     isStudent = _isStudentForSemester[_student][_semesterId];
-  }
-
-  /**
-   * @dev Add the students to the current semester.
-   * @param _students The students address.
-   */
-  function addStudentsToCurrentSemester(address[] memory _students) external {
-    _addStudentsToSemester(semestersCount - 1, _students);
-  }
-
-  /**
-   * @dev Add the students to the next semester.
-   * @param _students The students address.
-   */
-  function addStudentsToNextSemester(address[] memory _students) external {
-    _addStudentsToSemester(semestersCount, _students);
   }
 
   /**

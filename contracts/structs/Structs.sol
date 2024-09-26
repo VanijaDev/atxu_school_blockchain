@@ -18,8 +18,8 @@ struct SemesterInfo {
 }
 
 struct DonationSummary {
-  address tokens;
-  uint256 amounts;
+  address[] tokens;
+  uint256[] amounts;
 }
 
 struct SponsorInfo {
