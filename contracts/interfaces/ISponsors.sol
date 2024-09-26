@@ -7,4 +7,11 @@ interface ISponsors {
    * @return count The count of sponsors.
    */
   function totalCount() external view returns(uint256 count);
+
+  /**
+   * @dev Checks if the address is a sponsor.
+   * @param _addr The address of the sponsor.
+   * @return Whether the address is a sponsor.
+   */
+  function isSponsor(address _addr) external view returns(bool);
 }

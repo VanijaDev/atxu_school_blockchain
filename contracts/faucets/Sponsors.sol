@@ -46,6 +46,13 @@ contract Sponsors is ISponsors {
   }
 
   /**
+   * @dev See {ISponsors-isSponsor}.
+   */
+  function isSponsor(address _addr) external view returns(bool) {
+    return sponsorInfo[_addr].addr != address(0);
+  }
+
+  /**
    * @dev Gets a list of sponsors in the range.
    * @param _startIndex The start index.
    * @param _length The length.
