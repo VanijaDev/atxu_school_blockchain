@@ -48,8 +48,15 @@ contract Sponsors is ISponsors {
   /**
    * @dev See {ISponsors-isSponsor}.
    */
-  function isSponsor(address _addr) external view returns(bool) {
-    return sponsorInfo[_addr].addr != address(0);
+  function isSponsors(address[] memory _addr) external view returns(bool[] memory) {
+    uint256 len = _addr.length;
+    bool[] memory result = new bool[](len);
+
+    for (uint256 i = 0; i < len; ++i) {
+      result[i] = sponsorInfo[_addr[i]].addr != address(0);
+    }
+
+    return result;
   }
 
   /**

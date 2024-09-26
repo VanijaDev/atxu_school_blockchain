@@ -13,5 +13,5 @@ interface ISponsors {
    * @param _addr The address of the sponsor.
    * @return Whether the address is a sponsor.
    */
-  function isSponsor(address _addr) external view returns(bool);
+  function isSponsors(address[] memory _addr) external view returns(bool[] memory);
 }
