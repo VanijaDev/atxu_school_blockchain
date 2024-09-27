@@ -6,21 +6,16 @@ import { ISchool } from "../interfaces/ISchool.sol";
 import { SponsorInfo } from "../structs/Structs.sol";
 import { ZeroAddress, InvalidStartIndexOrLength, NotSchool, InvalidSponsorDataToAdd } from "../errors/Errors.sol";
 import { HelperLib } from "../libraries/HelperLib.sol";
+import { WriteBySchoolOnly } from "./WriteBySchoolOnly.sol";
 
 // Uncomment this line to use console.log
 // import "hardhat/console.sol";
 
-contract Sponsors is ISponsors {
-  ISchool public school;
-
+contract Sponsors is ISponsors, WriteBySchoolOnly {
   address[] private sponsors;
   mapping(address => SponsorInfo) public sponsorInfo;
   mapping(string => address) public sponsorAddressForFullName;
 
-  modifier onlySchool() {
-    require(HelperLib._isAddressEqual(msg.sender, address(school)), NotSchool(msg.sender)); // TODO: check deployment cost and gas usage
-    _;
-  }
 
   modifier onlyCorrectSponsorData (SponsorInfo calldata _info) {
     require(_onlyCorrectSponsorData(_info), InvalidSponsorDataToAdd());
@@ -32,11 +27,7 @@ contract Sponsors is ISponsors {
    * @dev Constructor.
    * @param _school The address of the School contract.
    */
-  constructor(address _school) {
-    require(_school != address(0), ZeroAddress());
-
-    school = ISchool(_school);
-  }
+  constructor(address _school) WriteBySchoolOnly(_school) { }
 
   /**
    * @dev See {ISponsors-totalCount}.

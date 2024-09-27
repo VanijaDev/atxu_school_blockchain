@@ -7,12 +7,12 @@ import { ISchool } from "../interfaces/ISchool.sol";
 import { StudentInfo } from "../structs/Structs.sol";
 import { HelperLib } from "../libraries/HelperLib.sol";
 import { ZeroAddress, InvalidSemesterDataToStart, InvalidDataForSemesterSearch, InvalidSemester, NotStudent, NotSchool } from "../errors/Errors.sol";
+import { WriteBySchoolOnly } from "./WriteBySchoolOnly.sol";
 
 // Uncomment this line to use console.log
 // import "hardhat/console.sol";
 
-contract Semesters is ISemesters {
-  ISchool public school;
+contract Semesters is ISemesters, WriteBySchoolOnly {
   uint256 public semestersCount;
 
   mapping(uint256 => SemesterInfo) private _semesterInfo;
@@ -23,21 +23,12 @@ contract Semesters is ISemesters {
   event SemesterStarted(uint256 indexed semesterId, uint256 startedAt);
   event SemesterFinished(uint256 indexed semesterId, uint256 finishedAt);
 
-  modifier onlySchool() {
-    require(HelperLib._isAddressEqual(msg.sender, address(school)), NotSchool(msg.sender)); // TODO: check deployment cost and gas usage
-    _;
-  }
-
 
   /**
    * @dev Constructor.
    * @param _school The address of the School contract.
    */
-  constructor(address _school) {
-    require(_school != address(0), ZeroAddress());
-
-    school = ISchool(_school);
-  }
+  constructor(address _school) WriteBySchoolOnly(_school) { }
 
   /**
    * @dev See {ISemesters-startNextSemester}.
@@ -159,7 +150,7 @@ contract Semesters is ISemesters {
   function studentsInfoForSemester(uint256 _semesterId) external view returns (StudentInfo[] memory studentsInfo) {
     address[] memory studentsAddress = _studentsAddressForSemester[_semesterId];
 
-    IStudents studentsContract = IStudents(school.studentsContract());
+    IStudents studentsContract = IStudents(ISchool(school).studentsContract());
     studentsInfo = studentsContract.studentsInfo(studentsAddress);
   }
 
@@ -200,7 +191,7 @@ contract Semesters is ISemesters {
   function _addStudentsToSemester(uint256 _semesterId, address[] memory _students) onlySchool private {
     require(_semesterId == semestersCount - 1 || _semesterId == semestersCount, InvalidSemester());
 
-    IStudents studentsContract = IStudents(school.studentsContract());
+    IStudents studentsContract = IStudents(ISchool(school).studentsContract());
     bool[] memory isLifetimeStudents = studentsContract.checkIfLifetimeStudents(_students);
 
     uint256 len = _students.length;

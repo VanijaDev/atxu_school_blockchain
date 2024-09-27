@@ -7,9 +7,4 @@ library HelperLib {
   function _isAddressEqual(address _addr0, address _addr1) internal pure returns (bool isEqual) {
     isEqual = _addr0 == _addr1;
   }
-
-  modifier onlySchool(address school) {
-    require(_isAddressEqual(msg.sender, school), NotSchool(msg.sender));
-    _;
-  }
 }

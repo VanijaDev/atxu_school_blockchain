@@ -5,12 +5,12 @@ import { IStudents, StudentInfo } from "../interfaces/IStudents.sol";
 import { ISchool } from "../interfaces/ISchool.sol";
 import { ZeroAddress, InvalidStudentInfo, InvalidStartIndexOrLength, NotSchool } from "../errors/Errors.sol";
 import { HelperLib } from "../libraries/HelperLib.sol";
+import { WriteBySchoolOnly } from "./WriteBySchoolOnly.sol";
 
 // Uncomment this line to use console.log
 // import "hardhat/console.sol";
 
-contract Students is IStudents {
-  ISchool public school;
+contract Students is IStudents, WriteBySchoolOnly {
   address[] private _studentsLifetime;
   mapping(string => address) public studentAddressForFullName;
   mapping(address => StudentInfo) private _studentInfo;
@@ -20,20 +20,12 @@ contract Students is IStudents {
     _;
   }
 
-  modifier onlySchool() {
-    require(HelperLib._isAddressEqual(msg.sender, address(school)), NotSchool(msg.sender)); // TODO: check deployment cost and gas usage
-    _;
-  }
 
   /**
    * @dev Constructor.
    * @param _school The address of the School contract.
    */
-  constructor(address _school) {
-    require(_school != address(0), ZeroAddress());
-
-    school = ISchool(_school);
-  }
+  constructor(address _school) WriteBySchoolOnly(_school) { }
 
   /**
    * @dev See {IStudents-checkIfLifetimeStudents}.
