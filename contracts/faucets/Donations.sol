@@ -12,7 +12,7 @@ import { WriteBySchoolOnly } from "./WriteBySchoolOnly.sol";
 // import "hardhat/console.sol";
 
 contract Donations is IDonations, WriteBySchoolOnly {
-  address public CASH_DONATION_ADDRESS = address(this);
+  address public immutable CASH_DONATION_ADDRESS;
 
   uint256 public totalCount;
 
@@ -28,7 +28,9 @@ contract Donations is IDonations, WriteBySchoolOnly {
    * @dev Constructor.
    * @param _school The address of the School contract.
    */
-  constructor(address _school) WriteBySchoolOnly(_school) { }
+  constructor(address _school) WriteBySchoolOnly(_school) {
+    CASH_DONATION_ADDRESS = _school;
+  }
 
   /**
    * @dev See {IDonations-donate}.
