@@ -2,6 +2,7 @@
 pragma solidity ^0.8.27;
 
   error InvalidSchoolAsZero();
+  error CallToSchoolFailed();
   error NotSchool(address caller);
 
   error ZeroAddress();
@@ -14,3 +15,6 @@ pragma solidity ^0.8.27;
   error NotStudent(address addr);
 
   error InvalidSponsorDataToAdd();
+  error InvalidSemesterForDonation(uint256 semesterId, uint256 currentSemesterId);
+  error DonorAddressZero();
+  error DonationAmountZero();

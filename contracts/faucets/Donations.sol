@@ -2,12 +2,18 @@
 pragma solidity ^0.8.27;
 
 import { IDonations } from "../interfaces/IDonations.sol";
+import { ISchool } from "../interfaces/ISchool.sol";
 import { DonationSummary } from "../structs/Structs.sol";
+import { HelperLib } from "../libraries/HelperLib.sol";
+import { NotSchool, CallToSchoolFailed, InvalidSemesterForDonation, DonorAddressZero, DonationAmountZero } from "../errors/Errors.sol";
+import { WriteBySchoolOnly } from "./WriteBySchoolOnly.sol";
 
 // Uncomment this line to use console.log
 // import "hardhat/console.sol";
 
-contract Donations is IDonations{
+contract Donations is IDonations, WriteBySchoolOnly {
+  address public CASH_DONATION_ADDRESS = address(this);
+
   uint256 public totalCount;
 
   mapping(uint256 => mapping(address => address[])) private tokensDonatedForSemesterByDonor; // semesterId => donorAddr => tokenAddr[]
@@ -19,10 +25,38 @@ contract Donations is IDonations{
 
 
   /**
+   * @dev Constructor.
+   * @param _school The address of the School contract.
+   */
+  constructor(address _school) WriteBySchoolOnly(_school) { }
+
+  /**
    * @dev See {IDonations-donate}.
    */
-  function donate(uint256 _semesterId, address _tokenAddr, uint256 _amount) external {
-    
+  function donate(address _donor, uint256 _semesterId, address _tokenAddr, uint256 _amount) external onlySchool {
+    require(_donor != address(0), DonorAddressZero());
+    require(_amount > 0, DonationAmountZero());
+
+    (bool successCallSemester, bytes memory data) = msg.sender.staticcall(abi.encodeWithSignature("currentSemesterId()"));
+    require(successCallSemester, CallToSchoolFailed());
+    uint256 currentSemesterId = abi.decode(data, (uint256));
+    require(_semesterId == currentSemesterId || _semesterId == currentSemesterId + 1, InvalidSemesterForDonation(_semesterId, currentSemesterId));
+
+    totalCount++;
+
+    if (amountDonatedForSemesterByDonorByToken[_semesterId][_donor][_tokenAddr] == 0) {
+      tokensDonatedForSemesterByDonor[_semesterId][_donor].push(_tokenAddr);
+      donorsDonatedForSemester[_semesterId].push(_donor);
+      semestersDonatedByDonor[_donor].push(_semesterId);
+    }
+
+    amountDonatedForSemesterByDonorByToken[_semesterId][_donor][_tokenAddr] += _amount;
+
+    (bool successCallIsSponsor, bytes memory dataIsSponsor) = msg.sender.staticcall(abi.encodeWithSignature("isSponsor(address)", _donor));
+    require(successCallIsSponsor, CallToSchoolFailed());
+    bool isSponsor = abi.decode(dataIsSponsor, (bool));
+
+    emit DonationMade(isSponsor, _donor, _tokenAddr, _amount);
   }
 
   /**
@@ -41,6 +75,11 @@ contract Donations is IDonations{
 
   /**
    * @dev See {IDonations-donationsSummaryForSemesters}.
+   * 
+    struct DonationSummary {
+      address[] tokens;
+      uint256[] amounts;
+    }
    */
   function donationsSummaryForSemesters(uint256[] memory _semesterId) external view returns (DonationSummary[] memory) {
 

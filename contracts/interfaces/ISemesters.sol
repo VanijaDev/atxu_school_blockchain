@@ -4,6 +4,13 @@ pragma solidity ^0.8.27;
 import { SemesterInfo } from "../structs/Structs.sol";
 
 interface ISemesters {
+
+  /**
+   * @dev Get the current semester id.
+   * @return The current semester id.
+   */
+  function currentSemesterId() external view returns (uint256);
+
   /**
    * @dev Starts the next semester.
    * @param _startedAt The start date of the semester.

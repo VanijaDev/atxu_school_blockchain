@@ -39,6 +39,13 @@ contract Sponsors is ISponsors, WriteBySchoolOnly {
   /**
    * @dev See {ISponsors-isSponsor}.
    */
+  function isSponsor(address _addr) external view returns(bool) {
+    return sponsorInfo[_addr].addr != address(0);
+  }
+
+  /**
+   * @dev See {ISponsors-isSponsor}.
+   */
   function isSponsors(address[] memory _addr) external view returns(bool[] memory) {
     uint256 len = _addr.length;
     bool[] memory result = new bool[](len);

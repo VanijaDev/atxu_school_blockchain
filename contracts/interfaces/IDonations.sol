@@ -6,11 +6,12 @@ import { DonationSummary } from "../structs/Structs.sol";
 interface IDonations {
   /**
    * @dev Donates to the semester.
+   * @param _donor Donor address.
    * @param _semesterId Semester id.
    * @param _tokenAddr Token address.
    * @param _amount The amount of the donation.
    */
-  function donate(uint256 _semesterId, address _tokenAddr, uint256 _amount) external;
+  function donate(address _donor, uint256 _semesterId, address _tokenAddr, uint256 _amount) external;
 
   /**
    * @dev Checks if the donor donated to the semester.

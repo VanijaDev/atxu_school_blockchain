@@ -31,6 +31,13 @@ contract Semesters is ISemesters, WriteBySchoolOnly {
   constructor(address _school) WriteBySchoolOnly(_school) { }
 
   /**
+   * @dev See {ISemesters-currentSemesterId}.
+   */
+  function currentSemesterId() external view returns (uint256) {
+    return semestersCount - 1;
+  }
+
+  /**
    * @dev See {ISemesters-startNextSemester}.
    */
   function startNextSemester(uint256 _startedAt, uint256 _finishedAt) onlySchool external {

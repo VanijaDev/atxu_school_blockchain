@@ -8,9 +8,13 @@ import { InvalidSchoolAsZero, NotSchool } from "../errors/Errors.sol";
 abstract contract WriteBySchoolOnly {
   address public school;
 
+  /**
+   * @dev Constructor.
+   * @param _school The address of the School contract.
+   */
   constructor(address _school) {
     require(_school != address(0), InvalidSchoolAsZero());
-    
+
     school = _school;
   }
 
