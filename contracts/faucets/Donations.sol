@@ -4,6 +4,7 @@ pragma solidity ^0.8.27;
 import { IDonations } from "../interfaces/IDonations.sol";
 import { ISchool } from "../interfaces/ISchool.sol";
 import { DonationSummary } from "../structs/Structs.sol";
+import { NATIVE_TOKEN_DONATION_ADDRESS } from "../constants/Constants.sol";
 import { HelperLib } from "../libraries/HelperLib.sol";
 import { NotSchool, CallToSchoolFailed, InvalidSemesterForDonation, DonorAddressZero, DonationAmountZero } from "../errors/Errors.sol";
 import { WriteBySchoolOnly } from "./WriteBySchoolOnly.sol";
@@ -33,9 +34,9 @@ contract Donations is IDonations, WriteBySchoolOnly {
   }
 
   /**
-   * @dev See {IDonations-donate}.
+   * @dev See {IDonations-addDonationOfflineRecord}.
    */
-  function donate(address _donor, uint256 _semesterId, address _tokenAddr, uint256 _amount) external onlySchool {
+  function addDonationOfflineRecord(address _donor, uint256 _semesterId, address _tokenAddr, uint256 _amount) external onlySchool {
     require(_donor != address(0), DonorAddressZero());
     require(_amount > 0, DonationAmountZero());
 
