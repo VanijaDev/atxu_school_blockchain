@@ -17,7 +17,7 @@ struct SemesterInfo {
   uint256 finishedAt;
 }
 
-struct DonationSummary {
+struct DonationAmountsSummary {
   address[] tokens;
   uint256[] amounts;
 }

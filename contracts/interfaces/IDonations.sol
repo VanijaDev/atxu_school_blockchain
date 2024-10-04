@@ -1,17 +1,41 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.27;
 
-import { DonationSummary } from "../structs/Structs.sol";
+import { DonationAmountsSummary } from "../structs/Structs.sol";
 
 interface IDonations {
   /**
-   * @dev Donates to the semester.
+   * @dev Adds an offline donation record.
    * @param _donor Donor address.
    * @param _semesterId Semester id.
    * @param _tokenAddr Token address.
    * @param _amount The amount of the donation.
    */
-  function donate(address _donor, uint256 _semesterId, address _tokenAddr, uint256 _amount) external;
+  function addDonationOfflineRecord(address _donor, uint256 _semesterId, address _tokenAddr, uint256 _amount) external;
+
+  // /**
+  //  * @dev Donates.
+  //  * @param _semesterId Semester id.
+  //  * @param _tokenAddr Token address.
+  //  * @param _amount The amount of the donation.
+  //  */
+  // function donate(uint256 _semesterId, address _tokenAddr, uint256 _amount) external;
+
+  // /**
+  //  * @dev Withdraws the donations.
+  //  * @param _tokenAddr Token address.
+  //  * @param _to The address to withdraw to.
+  //  * @param _amount The amount of the donation.
+  //  */
+  // function withdrawDonations(address _tokenAddr, address _to, uint256 _amount) external;
+
+  /**
+   * @dev Withdraws the donations from this contract.
+   * @param _tokenAddr Token address.
+   * @param _to The address to withdraw to.
+   * @param _amount The amount of the donation.
+   */
+  function withdrawDonationsFromThisContract(address _tokenAddr, address _to, uint256 _amount) external;
 
   /**
    * @dev Checks if the donor donated to the semester.
@@ -31,25 +55,25 @@ interface IDonations {
   function isDonorDonatedTokenForSemester(uint256 _semesterId, address _donorAddr, address _tokenAddr) external view returns (bool);
 
   /**
-   * @dev Gets the donations summary for the semesters.
-   * @param _semesterId The ids of the semesters.
+   * @dev Gets the donations amounts summaries for the semester.
+   * @param _semesterIds Semester ids.
    * @return The donations summary.
    */
-  function donationsSummaryForSemesters(uint256[] memory _semesterId) external view returns (DonationSummary[] memory);
+  function donationAmountsSummariesForSemesters(uint256[] memory _semesterIds) external view returns (DonationAmountsSummary[] memory);
 
   /**
-   * @dev Gets the donations summary for the semester for the donor.
-   * @param _semesterId Semester id.
+   * @dev Gets the donations amounts summaries for the semesters for the donor.
+   * @param _semesterIds Semester ids.
    * @param _donorAddr Donor address.
    * @return The donations summary.
    */
-  function donationsSummaryForSemestersForDonor(uint256 _semesterId, address _donorAddr) external view returns (DonationSummary[] memory);
+  function donationAmountsSummariesForSemestersForDonor(uint256[] memory _semesterIds, address _donorAddr) external view returns (DonationAmountsSummary[] memory);
 
   /**
-   * @dev Gets the donations summary for the semester for the donors.
+   * @dev Gets the donations amounts summaries for the semester for the donors.
    * @param _semesterId Semester id.
    * @param _donorAddr Donor addresses.
    * @return The donations summary.
    */
-  function donationsSummaryForSemesterForDonors(uint256 _semesterId, address[] memory _donorAddr) external view returns (DonationSummary[] memory);
+  function donationAmountsSummariesForSemesterForDonors(uint256 _semesterId, address[] memory _donorAddr) external view returns (DonationAmountsSummary[] memory);
 }
