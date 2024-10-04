@@ -53,4 +53,8 @@ contract School is ISchool, AccessControl {
   function sponsorsContract() external view override returns (address) {
     return address(_sponsorsContract);
   }
+
+  function currentSemesterId() external view override returns (uint256) {
+    return _semestersContract.currentSemesterId();
+  }
 }

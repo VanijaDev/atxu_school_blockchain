@@ -6,4 +6,6 @@ interface ISchool {
   function semestersContract() external view returns (address);
   function donationsContract() external view returns (address);
   function sponsorsContract() external view returns (address);
+
+  function currentSemesterId() external view returns (uint256);
 }
