@@ -11,6 +11,7 @@ pragma solidity ^0.8.27;
 
   error InvalidSemester();
   error InvalidSemesterDataToStart();
+  error InvalidSemesterDataToFinish(uint256 semesterId, uint256 startedAt, uint256 finishingAt);
   error InvalidDataForSemesterSearch();
   error NotStudent(address addr);
 

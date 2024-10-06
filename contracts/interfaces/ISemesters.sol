@@ -14,14 +14,14 @@ interface ISemesters {
   /**
    * @dev Starts the next semester.
    * @param _startedAt The start date of the semester.
-   * @param _finishedAt The finish date of the semester.
    */
-  function startNextSemester(uint256 _startedAt, uint256 _finishedAt) external;
+  function startNextSemester(uint256 _startedAt) external;
   
   /**
    * @dev Finishes the current semester.
+   * @param _finishedAt The finish date of the semester.
    */
-  function finishCurrentSemester() external;
+  function finishCurrentSemester(uint256 _finishedAt) external;
 
   /**
    * @dev Checks if students are in the semester.

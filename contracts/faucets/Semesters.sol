@@ -6,7 +6,7 @@ import { IStudents } from "../interfaces/IStudents.sol";
 import { ISchool } from "../interfaces/ISchool.sol";
 import { StudentInfo } from "../structs/Structs.sol";
 import { HelperLib } from "../libraries/HelperLib.sol";
-import { ZeroAddress, InvalidSemesterDataToStart, InvalidDataForSemesterSearch, InvalidSemester, NotStudent, NotSchool } from "../errors/Errors.sol";
+import { ZeroAddress, InvalidSemesterDataToStart, InvalidSemesterDataToFinish, InvalidDataForSemesterSearch, InvalidSemester, NotStudent, NotSchool } from "../errors/Errors.sol";
 import { WriteBySchoolOnly } from "./WriteBySchoolOnly.sol";
 
 // Uncomment this line to use console.log
@@ -40,11 +40,10 @@ contract Semesters is ISemesters, WriteBySchoolOnly {
   /**
    * @dev See {ISemesters-startNextSemester}.
    */
-  function startNextSemester(uint256 _startedAt, uint256 _finishedAt) onlySchool external {
-    require(_startedAt < _finishedAt, InvalidSemesterDataToStart());
+  function startNextSemester(uint256 _startedAt) onlySchool external {
     require(_startedAt > _semesterInfo[semestersCount - 1].finishedAt, InvalidSemesterDataToStart());
 
-    _semesterInfo[semestersCount] = SemesterInfo(semestersCount, _startedAt, _finishedAt);
+    _semesterInfo[semestersCount] = SemesterInfo(semestersCount, _startedAt, 0);
 
     emit SemesterStarted(semestersCount, _startedAt);
     
@@ -54,10 +53,13 @@ contract Semesters is ISemesters, WriteBySchoolOnly {
   /**
    * @dev See {ISemesters-finishCurrentSemester}.
    */
-  function finishCurrentSemester() onlySchool external {
-    _semesterInfo[semestersCount - 1].finishedAt = block.timestamp;
+  function finishCurrentSemester(uint256 _finishedAt) onlySchool external {
+    SemesterInfo storage semesterInfo = _semesterInfo[semestersCount - 1];
+    require(_finishedAt > semesterInfo.startedAt, InvalidSemesterDataToFinish(semestersCount - 1, semesterInfo.startedAt, _finishedAt));
 
-    emit SemesterFinished(semestersCount - 1, block.timestamp);
+    _semesterInfo[semestersCount - 1].finishedAt = _finishedAt;
+
+    emit SemesterFinished(semestersCount - 1, _finishedAt);
 
     // TODO: implement the logic for the end of the semester
   }
