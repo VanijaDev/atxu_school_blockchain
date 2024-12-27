@@ -2,32 +2,29 @@
 pragma solidity ^0.8.27;
 
 struct StudentInfo {
+  bool blocked;
+  uint256 id;
+  uint256 dob;
   address addr;
   string firstName;
-  string lastName;
   string midName;
-  uint256 dob;
+  string lastName;
   string photoUrl;
+  string additionalInfo;
   string additionalInfoUrl;
+  address[] parents;
+  uint256[] classes;
 }
 
-struct SemesterInfo {
-  uint256 semesterId;
-  uint256 startedAt;
-  uint256 finishedAt;
-}
-
-struct DonationAmountsSummary {
-  address[] tokens;
-  uint256[] amounts;
-}
-
-struct SponsorInfo {
+struct StudentInfoToAdd {
+  uint256 dob;
   address addr;
   string firstName;
-  string lastName;
   string midName;
-  uint256 dob;
+  string lastName;
   string photoUrl;
+  string additionalInfo;
   string additionalInfoUrl;
+  address[] parents;
+  uint256[] classes;
 }

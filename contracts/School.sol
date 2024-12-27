@@ -1,11 +1,6 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.27;
+pragma solidity ^0.8.28;
 
-import { ISchool } from "./interfaces/ISchool.sol";
-import { IStudents } from "./interfaces/IStudents.sol";
-import { ISemesters } from "./interfaces/ISemesters.sol";
-import { IDonations } from "./interfaces/IDonations.sol";
-import { ISponsors } from "./interfaces/ISponsors.sol";
 import { AccessControl } from "@openzeppelin/contracts/access/AccessControl.sol";
 
 // Uncomment this line to use console.log
@@ -17,44 +12,62 @@ import { AccessControl } from "@openzeppelin/contracts/access/AccessControl.sol"
  * @notice The School contract is an interface to use all the functionality through it.
  * @dev The School contract is a Proxy or Diamond storage.
  */
-contract School is ISchool, AccessControl {
-  IStudents private _studentsContract;
-  ISemesters private _semestersContract;
-  IDonations private _donationsContract;
-  ISponsors private _sponsorsContract;
+contract School is AccessControl {
+
+  enum TestFaucetType {
+    Students,
+    Semesters,
+    Classes,
+    Teachers,
+    Donations,
+    Donors
+  }
+
+  address public _studentsContract;
+  address public _semestersContract;
+  address public _classesContract;
+  address public _teachersContract;
+  address public _donationsContract;
+  address public _donorsContract;
 
 
   /**
    * @dev Constructor.
-   * @param _students The address of the Students contract.
-   * @param _semesters The address of the Semesters contract.
-   * @param _donations The address of the Donations contract.
-   * @param _sponsors The address of the Sponsors contract.
+   * @param _defaultAdmin The default admin role.
    */
-  constructor(address _students, address _semesters, address _donations, address _sponsors) {
-    _studentsContract = IStudents(_students);
-    _semestersContract = ISemesters(_semesters);
-    _donationsContract = IDonations(_donations);
-    _sponsorsContract = ISponsors(_sponsors);
+  constructor(address _defaultAdmin) {
+    _grantRole(DEFAULT_ADMIN_ROLE, _defaultAdmin);
   }
 
-  function studentsContract() external view override returns (address) {
-    return address(_studentsContract);
+  /**
+   * @dev Add a faucet contract.
+   * @param _faucetType The type of the faucet.
+   * @param _faucetAddress The address of the faucet.
+   */
+  function addFaucet(TestFaucetType _faucetType, address _faucetAddress) external {
+    if (_faucetType == TestFaucetType.Students) {
+      _studentsContract = _faucetAddress;
+    } else if (_faucetType == TestFaucetType.Semesters) {
+      _semestersContract = _faucetAddress;
+    } else if (_faucetType == TestFaucetType.Classes) {
+      _classesContract = _faucetAddress;
+    } else if (_faucetType == TestFaucetType.Teachers) {
+      _teachersContract = _faucetAddress;
+    } else if (_faucetType == TestFaucetType.Donations) {
+      _donationsContract = _faucetAddress;
+    } else if (_faucetType == TestFaucetType.Donors) {
+      _donorsContract = _faucetAddress;
+    } else {
+      revert("Invalid faucet type");
+    }
   }
 
-  function semestersContract() external view override returns (address) {
-    return address(_semestersContract);
-  }
-
-  function donationsContract() external view override returns (address) {
-    return address(_donationsContract);
-  }
-
-  function sponsorsContract() external view override returns (address) {
-    return address(_sponsorsContract);
-  }
-
-  function currentSemesterId() external view override returns (uint256) {
-    return _semestersContract.currentSemesterId();
+  /**
+   * @dev Get the current semester id.
+   * @return The current semester id.
+   */
+  function currentSemesterId() external view returns (uint256) {
+    // TODO
+    return 0;
   }
 }

@@ -1,138 +1,160 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.27;
+pragma solidity 0.8.28;
 
-import { IStudents, StudentInfo } from "../interfaces/IStudents.sol";
-import { ISchool } from "../interfaces/ISchool.sol";
-import { ZeroAddress, InvalidStudentInfo, InvalidStartIndexOrLength, NotSchool } from "../errors/Errors.sol";
-import { HelperLib } from "../libraries/HelperLib.sol";
-import { WriteBySchoolOnly } from "./WriteBySchoolOnly.sol";
+import { SchoolAsProxy } from "./SchoolAsProxy.sol";
+import { StudentInfo, StudentInfoToAdd } from "../structs/Structs.sol";
+import { InvalidStudentInfo, NotStudent, StudentIsBlocked } from "../errors/Errors.sol";
 
-// Uncomment this line to use console.log
-// import "hardhat/console.sol";
+contract Students is SchoolAsProxy {
+  uint256 public studentsCount;
 
-contract Students is IStudents, WriteBySchoolOnly {
-  address[] private _studentsLifetime;
-  mapping(string => address) public studentAddressForFullName;
-  mapping(address => StudentInfo) private _studentInfo;
+  mapping(uint256 => StudentInfo) public studentInfoById;
+  mapping(address => uint256) public studentIdByAddress;
 
-  modifier onlyCorrectStudentData (StudentInfo calldata _info) {
-    require(_onlyCorrectStudentData(_info), InvalidStudentInfo());
+  constructor(address _schoolAddress) SchoolAsProxy(_schoolAddress) {}
+
+  modifier onlyLifetimeStudent(address _studentAddress) {
+    require(_isLifetimeStudent(_studentAddress), NotStudent(_studentAddress));
     _;
   }
-
-
+  
   /**
-   * @dev Constructor.
-   * @param _school The address of the School contract.
+   * @dev Checks if the student is a lifetime student.
+   * @param _studentAddress The student address.
+   * @return bool Whether the student is a lifetime student.
    */
-  constructor(address _school) WriteBySchoolOnly(_school) { }
-
-  /**
-   * @dev See {IStudents-checkIfLifetimeStudents}.
-   */
-  function checkIfLifetimeStudents(address[] calldata _addresses) external view returns (bool[] memory) {
-    uint256 len = _addresses.length;
-    bool[] memory result = new bool[](len);
-
-    for (uint256 i = 0; i < len; ++i) {
-      result[i] = _studentInfo[_addresses[i]].addr != address(0);
-    }
-
-    return result;
+  function isLifetimeStudent(address _studentAddress) external view returns (bool) {
+    return _isLifetimeStudent(_studentAddress);
   }
 
   /**
-   * @dev See {IStudents-studentsInfo}.
+   * @dev Checks if the student is active.
+   * @param _studentAddress The student address.
+   * @return bool Whether the student is active.
    */
-  function studentsInfo(address[] calldata _addresses) external view returns (StudentInfo[] memory) {
-    uint256 len = _addresses.length;
-    
-    StudentInfo[] memory result = new StudentInfo[](len);
-    for (uint256 i = 0; i < len; ++i) {
-      result[i] = _studentInfo[_addresses[i]];
-    }
-
-    return result;
+  function isActiveStudent(address _studentAddress) external view returns (bool) {
+    return _isLifetimeStudent(_studentAddress) && !studentInfoById[studentIdByAddress[_studentAddress]].blocked;
   }
 
   /**
    * @dev Add a student to the list of students.
-   * @param _info The student info.
+   * @param _studentInfo The student info.
    */
+  function addStudent(StudentInfoToAdd calldata _studentInfo) external onlySchool {
+    require(_studentInfo.addr != address(0), InvalidStudentInfo());
+    require(_studentInfo.dob != 0, InvalidStudentInfo());
+    require(bytes(_studentInfo.firstName).length > 0, InvalidStudentInfo());
+    require(bytes(_studentInfo.lastName).length > 0, InvalidStudentInfo());
 
-  function addStudent(StudentInfo calldata _info) onlyCorrectStudentData(_info) onlySchool external {
-    address studentAddr = _info.addr;
+    studentInfoById[studentsCount] = StudentInfo({
+      blocked: false,
+      id: studentsCount,
+      dob: _studentInfo.dob,
+      addr: _studentInfo.addr,
+      firstName: _studentInfo.firstName,
+      midName: _studentInfo.midName,
+      lastName: _studentInfo.lastName,
+      photoUrl: _studentInfo.photoUrl,
+      additionalInfo: _studentInfo.additionalInfo,
+      additionalInfoUrl: _studentInfo.additionalInfoUrl,
+      parents: _studentInfo.parents,
+      classes: _studentInfo.classes
+    });
 
-    _studentsLifetime.push(studentAddr);
-    _studentInfo[studentAddr] = _info;
-
-    string memory fullName = string.concat(_info.firstName, _info.midName, _info.lastName);
-    studentAddressForFullName[fullName] = studentAddr;
+    studentIdByAddress[_studentInfo.addr] = studentsCount;
+    studentsCount++;
   }
 
   /**
-   * @dev Get the count of the lifetime students.
-   * @return The count of students.
+   * @dev Updates student's blocked.
+   * @param _studentAddress The student address.
+   * @param _blocked Whether the student is blocked.
    */
-  function studentsLifetimeCount() external view returns (uint256) {
-    return _studentsLifetime.length;
+  function updateStudentblocked(address _studentAddress, bool _blocked) external onlySchool onlyLifetimeStudent(_studentAddress) {
+    studentInfoById[studentIdByAddress[_studentAddress]].blocked = _blocked;
+  }
+
+  function updateStudentDOB(address _studentAddress, uint256 _dob) external onlySchool onlyLifetimeStudent(_studentAddress) {
+    studentInfoById[studentIdByAddress[_studentAddress]].dob = _dob;
   }
 
   /**
-   * @dev Get the lifetime students.
-   * @param _startIndex The start index.
-   * @param _length The length.
-   * @return result The addresses of the students.
+   * @dev Updates student's address.
+   * @param _studentAddress The current student address.
+   * @param _updatedAddress The updated student address.
    */
-  function studentsLifetimeInRange(uint256 _startIndex, uint256 _length) external view returns (address[] memory result) {
-    require(_startIndex < _studentsLifetime.length, InvalidStartIndexOrLength());
-    require(_length > 0, InvalidStartIndexOrLength());
-    require(_startIndex + _length <= _studentsLifetime.length, InvalidStartIndexOrLength());
-
-    result = new address[](_length);
-
-    for (uint256 i = 0; i < _length; ++i) {
-      result[i] = _studentsLifetime[_startIndex + i];
-    }
-
-    return result;
+  function updateStudentAddress(address _studentAddress, address _updatedAddress) external onlySchool onlyLifetimeStudent(_studentAddress) {
+    studentInfoById[studentIdByAddress[_studentAddress]].addr = _updatedAddress;
+    studentIdByAddress[_updatedAddress] = studentIdByAddress[_studentAddress];
+    delete studentIdByAddress[_studentAddress];
   }
 
-  // MODIFIER FUNCTIONS
   /**
-   * @dev Check if the student data is correct.
-   * @param _info The student info.
-   * @return Whether the student data is correct.
+   * @dev Updates student's names.
+   * @param _studentAddress The student address.
+   * @param _firstName The first name.
+   * @param _midName The middle name.
+   * @param _lastName The last name.
    */
-  function _onlyCorrectStudentData(StudentInfo calldata _info) private pure returns (bool) {
-    return _info.addr != address(0) && bytes(_info.firstName).length > 0 && bytes(_info.lastName).length > 0 && _info.dob > 0 && bytes(_info.photoUrl).length > 0;
+  function updateStudentNames(address _studentAddress, string calldata _firstName, string calldata _midName, string calldata _lastName) external onlySchool onlyLifetimeStudent(_studentAddress) {
+    studentInfoById[studentIdByAddress[_studentAddress]].firstName = _firstName;
+    studentInfoById[studentIdByAddress[_studentAddress]].midName = _midName;
+    studentInfoById[studentIdByAddress[_studentAddress]].lastName = _lastName;
+  }
 
-    /**
-     * TODO
-     * - compare gas prices with individual if
-     * - midName & additionalInfoUrl
-     */
+  /**
+   * @dev Updates student's photo URL.
+   * @param _studentAddress The student address.
+   * @param _photoUrl The photo URL.
+   */
+  function updateStudentPhotoUrl(address _studentAddress, string calldata _photoUrl) external onlySchool onlyLifetimeStudent(_studentAddress) {
+    studentInfoById[studentIdByAddress[_studentAddress]].photoUrl = _photoUrl;
+  }
 
-    // if (_info.addr != address(0)) {
-    //   return false;
-    // }
+  /**
+   * @dev Updates student's additional info.
+   * @param _studentAddress The student address.
+   * @param _additionalInfo The additional info.
+   */
+  function updateStudentAdditionalInfo(address _studentAddress, string calldata _additionalInfo) external onlySchool onlyLifetimeStudent(_studentAddress) {
+    studentInfoById[studentIdByAddress[_studentAddress]].additionalInfo = _additionalInfo;
+  }
 
-    // if (bytes(_info.firstName).length == 0) {
-    //   return false;
-    // }
+  /**
+   * @dev Updates student's additional info URL.
+   * @param _studentAddress The student address.
+   * @param _additionalInfoUrl The additional info URL.
+   */
+  function updateStudentAdditionalInfoUrl(address _studentAddress, string calldata _additionalInfoUrl) external onlySchool onlyLifetimeStudent(_studentAddress) {
+    studentInfoById[studentIdByAddress[_studentAddress]].additionalInfoUrl = _additionalInfoUrl;
+  }
 
-    // if (bytes(_info.lastName).length == 0) {
-    //   return false;
-    // }
+  /**
+   * @dev Updates student's parents.
+   * @param _studentAddress The student address.
+   * @param _parents The parents.
+   */
+  function updateStudentParents(address _studentAddress, address[] calldata _parents) external onlySchool onlyLifetimeStudent(_studentAddress) {
+    studentInfoById[studentIdByAddress[_studentAddress]].parents = _parents;
+  }
 
-    // if (_info.dob == 0) {
-    //   return false;
-    // }
+  /**
+   * @dev Adds a student to a class.
+   * @param _studentAddress The student address.
+   * @param _classId The class id.
+   */
+  function addStudentToClass(address _studentAddress, uint256 _classId) external onlySchool onlyLifetimeStudent(_studentAddress) {
+    require(!studentInfoById[studentIdByAddress[_studentAddress]].blocked, StudentIsBlocked(_studentAddress));
 
-    // if (bytes(_info.photoUrl).length == 0) {
-    //   return false;
-    // }
+    studentInfoById[studentIdByAddress[_studentAddress]].classes.push(_classId);
+  }
 
-    // return true;
+  /**
+   * @dev Checks if the student is a lifetime student.
+   * @param _studentAddress The student address.
+   * @return bool Whether the student is a lifetime student.
+   */
+  function _isLifetimeStudent(address _studentAddress) private view returns (bool) {
+    return studentInfoById[studentIdByAddress[_studentAddress]].addr == _studentAddress;
   }
 }
