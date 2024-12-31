@@ -26,5 +26,40 @@ struct StudentInfoToAdd {
   string additionalInfo;
   string additionalInfoUrl;
   address[] parents;
-  uint256[] classes;
+}
+
+
+struct SemesterInfo {
+  uint256 id;
+  uint256 startedAt;
+  uint256 endedAt;
+  uint256[] classIds;
+  string additionalInfo;
+  string additionalInfoUrl;
+}
+
+struct SemesterInfoToAdd {
+  string additionalInfo;
+  string additionalInfoUrl;
+}
+
+struct ClassInfo {
+  uint256 id;
+  uint256 semesterId;
+  string name;
+  address primaryTeacher;
+  address[] teachers;
+  address[] students;
+  string additionalInfo;
+  string additionalInfoUrl;
+}
+
+struct ClassInfoToAdd {
+  uint256 semesterId;
+  string name;
+  address primaryTeacher;
+  address[] teachers;
+  address[] students;
+  string additionalInfo;
+  string additionalInfoUrl;
 }

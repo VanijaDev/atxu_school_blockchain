@@ -4,9 +4,15 @@ pragma solidity 0.8.28;
 import { SchoolAsProxy } from "./SchoolAsProxy.sol";
 import { StudentInfo, StudentInfoToAdd } from "../structs/Structs.sol";
 import { InvalidStudentInfo, NotStudent, StudentIsBlocked } from "../errors/Errors.sol";
+import { StudentAdded, StudentInfoUpdated } from "../events/Events.sol";
 
+/**
+ * @title Students
+ * @author Ivan Solomichev.
+ * @dev The contract for managing students.
+ */
 contract Students is SchoolAsProxy {
-  uint256 public studentsCount;
+  uint256 public studentCount;
 
   mapping(uint256 => StudentInfo) public studentInfoById;
   mapping(address => uint256) public studentIdByAddress;
@@ -46,23 +52,41 @@ contract Students is SchoolAsProxy {
     require(bytes(_studentInfo.firstName).length > 0, InvalidStudentInfo());
     require(bytes(_studentInfo.lastName).length > 0, InvalidStudentInfo());
 
-    studentInfoById[studentsCount] = StudentInfo({
-      blocked: false,
-      id: studentsCount,
-      dob: _studentInfo.dob,
-      addr: _studentInfo.addr,
-      firstName: _studentInfo.firstName,
-      midName: _studentInfo.midName,
-      lastName: _studentInfo.lastName,
-      photoUrl: _studentInfo.photoUrl,
-      additionalInfo: _studentInfo.additionalInfo,
-      additionalInfoUrl: _studentInfo.additionalInfoUrl,
-      parents: _studentInfo.parents,
-      classes: _studentInfo.classes
-    });
+    // TODO: gas optimization
+    // studentInfoById[studentCount] = StudentInfo({
+    //   blocked: false,
+    //   id: studentCount,
+    //   dob: _studentInfo.dob,
+    //   addr: _studentInfo.addr,
+    //   firstName: _studentInfo.firstName,
+    //   midName: _studentInfo.midName,
+    //   lastName: _studentInfo.lastName,
+    //   photoUrl: _studentInfo.photoUrl,
+    //   additionalInfo: _studentInfo.additionalInfo,
+    //   additionalInfoUrl: _studentInfo.additionalInfoUrl,
+    //   parents: _studentInfo.parents,
+    //   classes: _studentInfo.classes
+    // });
 
-    studentIdByAddress[_studentInfo.addr] = studentsCount;
-    studentsCount++;
+    StudentInfo storage studentInfo = studentInfoById[studentCount];
+    studentInfo.id = studentCount;
+    studentInfo.dob = _studentInfo.dob;
+    studentInfo.addr = _studentInfo.addr;
+    studentInfo.firstName = _studentInfo.firstName;
+    studentInfo.midName = _studentInfo.midName;
+    studentInfo.lastName = _studentInfo.lastName;
+    studentInfo.photoUrl = _studentInfo.photoUrl;
+    studentInfo.additionalInfo = _studentInfo.additionalInfo;
+    studentInfo.additionalInfoUrl = _studentInfo.additionalInfoUrl;
+    studentInfo.parents = _studentInfo.parents;
+
+    studentIdByAddress[_studentInfo.addr] = studentCount;
+
+    emit StudentAdded(_studentInfo.addr, studentCount);
+
+    unchecked {
+      ++studentCount;
+    }
   }
 
   /**
@@ -70,12 +94,16 @@ contract Students is SchoolAsProxy {
    * @param _studentAddress The student address.
    * @param _blocked Whether the student is blocked.
    */
-  function updateStudentblocked(address _studentAddress, bool _blocked) external onlySchool onlyLifetimeStudent(_studentAddress) {
+  function updateStudentBlocked(address _studentAddress, bool _blocked) external onlySchool onlyLifetimeStudent(_studentAddress) {
     studentInfoById[studentIdByAddress[_studentAddress]].blocked = _blocked;
+
+    emit StudentInfoUpdated(_studentAddress);
   }
 
   function updateStudentDOB(address _studentAddress, uint256 _dob) external onlySchool onlyLifetimeStudent(_studentAddress) {
     studentInfoById[studentIdByAddress[_studentAddress]].dob = _dob;
+
+    emit StudentInfoUpdated(_studentAddress);
   }
 
   /**
@@ -87,6 +115,8 @@ contract Students is SchoolAsProxy {
     studentInfoById[studentIdByAddress[_studentAddress]].addr = _updatedAddress;
     studentIdByAddress[_updatedAddress] = studentIdByAddress[_studentAddress];
     delete studentIdByAddress[_studentAddress];
+
+    emit StudentInfoUpdated(_studentAddress);
   }
 
   /**
@@ -100,6 +130,8 @@ contract Students is SchoolAsProxy {
     studentInfoById[studentIdByAddress[_studentAddress]].firstName = _firstName;
     studentInfoById[studentIdByAddress[_studentAddress]].midName = _midName;
     studentInfoById[studentIdByAddress[_studentAddress]].lastName = _lastName;
+
+    emit StudentInfoUpdated(_studentAddress);
   }
 
   /**
@@ -109,6 +141,8 @@ contract Students is SchoolAsProxy {
    */
   function updateStudentPhotoUrl(address _studentAddress, string calldata _photoUrl) external onlySchool onlyLifetimeStudent(_studentAddress) {
     studentInfoById[studentIdByAddress[_studentAddress]].photoUrl = _photoUrl;
+
+    emit StudentInfoUpdated(_studentAddress);
   }
 
   /**
@@ -118,6 +152,8 @@ contract Students is SchoolAsProxy {
    */
   function updateStudentAdditionalInfo(address _studentAddress, string calldata _additionalInfo) external onlySchool onlyLifetimeStudent(_studentAddress) {
     studentInfoById[studentIdByAddress[_studentAddress]].additionalInfo = _additionalInfo;
+
+    emit StudentInfoUpdated(_studentAddress);
   }
 
   /**
@@ -127,6 +163,8 @@ contract Students is SchoolAsProxy {
    */
   function updateStudentAdditionalInfoUrl(address _studentAddress, string calldata _additionalInfoUrl) external onlySchool onlyLifetimeStudent(_studentAddress) {
     studentInfoById[studentIdByAddress[_studentAddress]].additionalInfoUrl = _additionalInfoUrl;
+
+    emit StudentInfoUpdated(_studentAddress);
   }
 
   /**
@@ -136,6 +174,8 @@ contract Students is SchoolAsProxy {
    */
   function updateStudentParents(address _studentAddress, address[] calldata _parents) external onlySchool onlyLifetimeStudent(_studentAddress) {
     studentInfoById[studentIdByAddress[_studentAddress]].parents = _parents;
+
+    emit StudentInfoUpdated(_studentAddress);
   }
 
   /**
