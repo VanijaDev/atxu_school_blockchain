@@ -18,7 +18,7 @@ contract Students is SchoolAsProxy {
 
   mapping(uint256 => SemesterInfo) public semesterInfoById;
 
-  modifier onlycurrentOrNextSemester(uint256 _semesterId) {
+  modifier onlyCurrentOrNextSemester(uint256 _semesterId) {
     require(isCurrentOrNextSemester(_semesterId) > CurrentOrNextSemester.None, CanntAddClassForSemester(_semesterId));
     _;
   }
@@ -95,7 +95,7 @@ contract Students is SchoolAsProxy {
    * @param _semesterId The semester id.
    * @param _classId The class id.
    */
-  function addClassToSemester(uint256 _semesterId, uint256 _classId) external onlySchool onlycurrentOrNextSemester(_semesterId) {
+  function addClassToSemester(uint256 _semesterId, uint256 _classId) external onlySchool onlyCurrentOrNextSemester(_semesterId) {
     // TODO: add class checks
     semesterInfoById[_semesterId].classIds.push(_classId);
   }
@@ -105,7 +105,7 @@ contract Students is SchoolAsProxy {
    * @param _semesterId The semester id.
    * @param _classId The class id.
    */
-  function removeClassFromSemester(uint256 _semesterId, uint256 _classId) external onlySchool onlycurrentOrNextSemester(_semesterId) {
+  function removeClassFromSemester(uint256 _semesterId, uint256 _classId) external onlySchool onlyCurrentOrNextSemester(_semesterId) {
     uint256[] storage classIds = semesterInfoById[_semesterId].classIds;
     uint256 len = classIds.length;
 
@@ -124,7 +124,6 @@ contract Students is SchoolAsProxy {
     revert ClassNotFoundForSemester(_classId, _semesterId);
   }
 
-
   /**
    * @dev Returns the semester info for a timestamp.
    * @param _timestamp The timestamp.
@@ -135,6 +134,14 @@ contract Students is SchoolAsProxy {
     return semesterInfoById[semesterIdForTimestamp(_timestamp, _avgSemesterDuration)];
   }
 
+  /**
+   * @dev Returns the class ids for a semester.
+   * @param _semesterId The semester id.
+   * @return uint256[] The class ids.
+   */
+  function classIdsForSemester(uint256 _semesterId) external view returns (uint256[] memory) {
+    return semesterInfoById[_semesterId].classIds;
+  }
 
   /**
    * @dev Returns the semester id for a timestamp.
@@ -178,7 +185,7 @@ contract Students is SchoolAsProxy {
    * @param _semesterId The semester id.
    * @return _res CurrentOrNextSemester The result.
    */
-  function isCurrentOrNextSemester(uint256 _semesterId) private view returns (CurrentOrNextSemester _res) {
+  function isCurrentOrNextSemester(uint256 _semesterId) public view returns (CurrentOrNextSemester _res) {
     if (_semesterId == semesterCount - 1) {
       return CurrentOrNextSemester.Current;
     } else if (_semesterId == semesterCount) {

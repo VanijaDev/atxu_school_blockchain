@@ -34,11 +34,11 @@ contract Students is SchoolAsProxy {
   }
 
   /**
-   * @dev Checks if the student is active.
+   * @dev Checks if the student is present and not blocked.
    * @param _studentAddress The student address.
-   * @return bool Whether the student is active.
+   * @return bool Whether the student is present and not blocked.
    */
-  function isActiveStudent(address _studentAddress) external view returns (bool) {
+  function isStudentPresentAndNotBlocked(address _studentAddress) external view returns (bool) {
     return _isLifetimeStudent(_studentAddress) && !studentInfoById[studentIdByAddress[_studentAddress]].blocked;
   }
 
@@ -100,6 +100,11 @@ contract Students is SchoolAsProxy {
     emit StudentInfoUpdated(_studentAddress);
   }
 
+  /**
+   * @dev Updates student's date of birth.
+   * @param _studentAddress The student address.
+   * @param _dob The date of birth.
+   */
   function updateStudentDOB(address _studentAddress, uint256 _dob) external onlySchool onlyLifetimeStudent(_studentAddress) {
     studentInfoById[studentIdByAddress[_studentAddress]].dob = _dob;
 

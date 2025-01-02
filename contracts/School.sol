@@ -67,7 +67,9 @@ contract School is AccessControl {
    * @return The current semester id.
    */
   function currentSemesterId() external view returns (uint256) {
-    // TODO
-    return 0;
+    // TODO: implement via Diamond faucets
+    (bool success, bytes memory data) = _semestersContract.staticcall(abi.encodeWithSignature("currentSemesterId()"));
+    require(success, "currentSemesterId() failed");
+    return abi.decode(data, (uint256));
   }
 }

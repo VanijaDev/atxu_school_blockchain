@@ -29,6 +29,31 @@ struct StudentInfoToAdd {
 }
 
 
+struct TeacherInfo {
+  bool blocked;
+  uint256 id;
+  uint256 dob;
+  address addr;
+  string firstName;
+  string midName;
+  string lastName;
+  string photoUrl;
+  string additionalInfo;
+  string additionalInfoUrl;
+}
+
+struct TeacherInfoToAdd {
+  uint256 dob;
+  address addr;
+  string firstName;
+  string midName;
+  string lastName;
+  string photoUrl;
+  string additionalInfo;
+  string additionalInfoUrl;
+}
+
+
 struct SemesterInfo {
   uint256 id;
   uint256 startedAt;
@@ -42,6 +67,7 @@ struct SemesterInfoToAdd {
   string additionalInfo;
   string additionalInfoUrl;
 }
+
 
 struct ClassInfo {
   uint256 id;

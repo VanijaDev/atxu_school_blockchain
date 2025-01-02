@@ -3,7 +3,7 @@ pragma solidity 0.8.28;
 
 import { SchoolAsProxy } from "./SchoolAsProxy.sol";
 import { ClassInfo, ClassInfoToAdd } from "../structs/Structs.sol";
-import { ZeroAddress, StudentNotFoundInClass, TeacherNotFoundInClass } from "../errors/Errors.sol";
+import { ZeroAddress, StudentNotFoundInClass, TeacherNotFoundInClass, ClassIdsForSemesterReverted, ClassNameAlreadyExistsForSemester, FailedToAddClassToSemester } from "../errors/Errors.sol";
 
 /**
  * @title Classes
@@ -47,14 +47,17 @@ contract Classes is SchoolAsProxy {
 
   /**
    * @dev Creates a class.
+   * @param _semesterId The semester id.
    * @param _classInfo The class info.
    */
-  function createClass(ClassInfoToAdd calldata _classInfo) external onlySchool {
+  function createClassForSemester(uint256 _semesterId, ClassInfoToAdd calldata _classInfo) external onlySchool {
+    _onlyNotUsedNameInClasses(_semesterId, _classInfo.name);
+
+
     ClassInfo storage classInfo = classInfoById[classCount];
 
     /**
      * TODO
-     * check if name is not used
      * check if primaryTeacher is a isLifetimeTeachers
      * check isLifetimeTeachers
      * check isLifetimeStudents
@@ -71,6 +74,9 @@ contract Classes is SchoolAsProxy {
     unchecked {
       ++classCount;
     }
+
+    (bool success, ) = schoolAddress.call(abi.encodeWithSignature("addClassToSemester(uint256)", _semesterId));
+    require(success, FailedToAddClassToSemester(_semesterId, _classInfo.name));
   }
   
   /**
@@ -249,5 +255,33 @@ contract Classes is SchoolAsProxy {
     require(bytes(classInfo.name).length > 0, NoClassForId(_classId));
 
     classInfo.additionalInfoUrl = _additionalInfoUrl;
+  }
+
+
+  /**
+   * @dev Checks if the class name is not used in classes of the semester.
+   * @param _semesterId The semester id.
+   * @param _name The class name.
+   */
+  function _onlyNotUsedNameInClasses(uint256 _semesterId, string memory _name) private view {
+    (bool success, bytes memory data) = schoolAddress.staticcall(abi.encodeWithSignature("classIdsForSemester(uint256)", _semesterId));
+    require(success, ClassIdsForSemesterReverted());
+    
+    uint256[] memory _classIds = abi.decode(data, (uint256[]));
+    uint256 len = _classIds.length;
+
+    bytes32 nameHash = keccak256(abi.encodePacked(_name));
+
+    for (uint256 i = 0; i < len; ) {
+      require(keccak256(abi.encodePacked(classInfoById[_classIds[i]].name)) != nameHash, ClassNameAlreadyExistsForSemester(_semesterId, _name));
+      
+      unchecked {
+        ++i;
+      }
+    }
+  }
+
+  function _onlyValidTeachers(address _primaryTeacher, address[] memory _teachers) private view {
+    // TODO
   }
 }
