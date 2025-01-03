@@ -1,10 +1,10 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.28;
 
-event StudentAdded(address indexed studentAddress, uint256 indexed studentId);
+event StudentAdded(address indexed studentAddress, string indexed firstName, string indexed lastName, uint256 id);
 event StudentInfoUpdated(address indexed studentAddress);
 
-event TeacherAdded(address indexed teacherAddress, uint256 indexed teacherId);
+event TeacherAdded(address indexed teacherAddress, string indexed firstName, string indexed lastName, uint256 id);
 event TeacherInfoUpdated(address indexed teacherAddress);
 
 event SemesterAdded(uint256 indexed semesterId);

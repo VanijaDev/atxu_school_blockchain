@@ -46,6 +46,26 @@ contract Classes is SchoolAsProxy {
   }
 
   /**
+   * @dev Gets the class info by ids.
+   * @param _classIds The class ids.
+   * @return ClassInfo[] The classes info.
+   */
+  function classInfoForIds(uint256[] calldata _classIds) external view returns (ClassInfo[] memory) {
+    uint256 len = _classIds.length;
+    ClassInfo[] memory _classInfo = new ClassInfo[](len);
+
+    for (uint256 i = 0; i < len; ) {
+      _classInfo[i] = classInfoById[_classIds[i]];
+
+      unchecked {
+        ++i;
+      }
+    }
+
+    return _classInfo;
+  }
+
+  /**
    * @dev Creates a class.
    * @param _semesterId The semester id.
    * @param _classInfo The class info.

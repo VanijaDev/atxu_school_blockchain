@@ -5,11 +5,18 @@ error SenderNotSchool(address sender);
 error NotStudent(address addr);
 error InvalidStudentInfo();
 error StudentIsBlocked(address studentAddress);
+error StudentExistsForAddress(address studentAddress);
+error StudentExistsForNames(string firstName, string midName, string lastName);
+error StudentAlreadyAddedToClass(address studentAddress, uint256 classId);
 
 error NotTeacher(address addr);
+error NoTeacherForNames(string firstName, string midName, string lastName);
+error TeacherExistsForNames(string firstName, string midName, string lastName);
 error InvalidTeacherInfo();
+error TeacherExistsForAddress(address teacherAddress);
 error TeacherIsBlocked(address teacherAddress);
 error ClassIdsForSemesterReverted();
+error TeacherAlreadyAddedForSemester(address teacherAddress, uint256 semesterId);
 
 error NoClassesForSemester(uint256 semesterId);
 error CanntAddClassForSemester(uint256 semesterId);

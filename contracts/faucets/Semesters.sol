@@ -17,6 +17,7 @@ contract Students is SchoolAsProxy {
   uint256 public semesterCount;
 
   mapping(uint256 => SemesterInfo) public semesterInfoById;
+  mapping(uint256 => uint256) public semesterIdForClassId;
 
   modifier onlyCurrentOrNextSemester(uint256 _semesterId) {
     require(isCurrentOrNextSemester(_semesterId) > CurrentOrNextSemester.None, CanntAddClassForSemester(_semesterId));
@@ -98,6 +99,7 @@ contract Students is SchoolAsProxy {
   function addClassToSemester(uint256 _semesterId, uint256 _classId) external onlySchool onlyCurrentOrNextSemester(_semesterId) {
     // TODO: add class checks
     semesterInfoById[_semesterId].classIds.push(_classId);
+    semesterIdForClassId[_classId] = _semesterId;
   }
 
   /**

@@ -3,8 +3,9 @@ pragma solidity 0.8.28;
 
 import { SchoolAsProxy } from "./SchoolAsProxy.sol";
 import { StudentInfo, StudentInfoToAdd } from "../structs/Structs.sol";
-import { InvalidStudentInfo, NotStudent, StudentIsBlocked } from "../errors/Errors.sol";
+import { InvalidStudentInfo, NotStudent, StudentIsBlocked, StudentExistsForAddress, StudentExistsForNames, StudentAlreadyAddedToClass } from "../errors/Errors.sol";
 import { StudentAdded, StudentInfoUpdated } from "../events/Events.sol";
+import { CurrentOrNextSemester } from "../enums/Enums.sol";
 
 /**
  * @title Students
@@ -14,32 +15,31 @@ import { StudentAdded, StudentInfoUpdated } from "../events/Events.sol";
 contract Students is SchoolAsProxy {
   uint256 public studentCount;
 
+  mapping(bytes32 => uint256) private _studentIdByNames;
+  mapping(address => bool) private _isStudentInClass;
   mapping(uint256 => StudentInfo) public studentInfoById;
   mapping(address => uint256) public studentIdByAddress;
 
   constructor(address _schoolAddress) SchoolAsProxy(_schoolAddress) {}
 
   modifier onlyLifetimeStudent(address _studentAddress) {
-    require(_isLifetimeStudent(_studentAddress), NotStudent(_studentAddress));
+    require(isLifetimeStudent(_studentAddress), NotStudent(_studentAddress));
     _;
   }
-  
-  /**
-   * @dev Checks if the student is a lifetime student.
-   * @param _studentAddress The student address.
-   * @return bool Whether the student is a lifetime student.
-   */
-  function isLifetimeStudent(address _studentAddress) external view returns (bool) {
-    return _isLifetimeStudent(_studentAddress);
+
+  modifier onlyLifetimeStudentAndNotBlocked(address _studentAddress) {
+    require(isLifetimeStudentAndNotBlocked(_studentAddress), StudentIsBlocked(_studentAddress));
+    _;
   }
 
+
   /**
-   * @dev Checks if the student is present and not blocked.
+   * @dev Returns the student info by address.
    * @param _studentAddress The student address.
-   * @return bool Whether the student is present and not blocked.
+   * @return StudentInfo The student info.
    */
-  function isStudentPresentAndNotBlocked(address _studentAddress) external view returns (bool) {
-    return _isLifetimeStudent(_studentAddress) && !studentInfoById[studentIdByAddress[_studentAddress]].blocked;
+  function studentInfoByAddress(address _studentAddress) external view onlyLifetimeStudent(_studentAddress) returns (StudentInfo memory) {
+    return studentInfoById[studentIdByAddress[_studentAddress]];
   }
 
   /**
@@ -51,6 +51,11 @@ contract Students is SchoolAsProxy {
     require(_studentInfo.dob != 0, InvalidStudentInfo());
     require(bytes(_studentInfo.firstName).length > 0, InvalidStudentInfo());
     require(bytes(_studentInfo.lastName).length > 0, InvalidStudentInfo());
+
+
+    require(!isLifetimeStudent(_studentInfo.addr), StudentExistsForAddress(_studentInfo.addr));
+    (bool present, ) = _isStudentExistsWithNames(_studentInfo.firstName, _studentInfo.midName, _studentInfo.lastName);
+    require(!present, StudentExistsForNames(_studentInfo.firstName, _studentInfo.midName, _studentInfo.lastName));
 
     // TODO: gas optimization
     // studentInfoById[studentCount] = StudentInfo({
@@ -82,7 +87,9 @@ contract Students is SchoolAsProxy {
 
     studentIdByAddress[_studentInfo.addr] = studentCount;
 
-    emit StudentAdded(_studentInfo.addr, studentCount);
+    _studentIdByNames[keccak256(abi.encodePacked(_studentInfo.firstName, _studentInfo.midName, _studentInfo.lastName))] = studentCount;
+
+    emit StudentAdded(_studentInfo.addr, _studentInfo.firstName, _studentInfo.lastName, studentCount);
 
     unchecked {
       ++studentCount;
@@ -190,16 +197,59 @@ contract Students is SchoolAsProxy {
    */
   function addStudentToClass(address _studentAddress, uint256 _classId) external onlySchool onlyLifetimeStudent(_studentAddress) {
     require(!studentInfoById[studentIdByAddress[_studentAddress]].blocked, StudentIsBlocked(_studentAddress));
+    require(!_isStudentInClass[_studentAddress], StudentAlreadyAddedToClass(_studentAddress, _classId));
+    
+    (bool success, bytes memory data) = address(schoolAddress).delegatecall(abi.encodeWithSignature("semesterIdForClassId(uint256)", _classId));
+    require(success, "semesterIdForClassId(uint256) failed");
+    uint256 semesterId = abi.decode(data, (uint256));
+
+    (bool success2, bytes memory data2) = address(schoolAddress).delegatecall(abi.encodeWithSignature("isCurrentOrNextSemester(uint256)", semesterId));
+    require(success2, "isCurrentOrNextSemester(uint256) failed");
+    require(abi.decode(data2, (CurrentOrNextSemester)) > CurrentOrNextSemester.None, "Cannt add to semester (_semesterId)");
 
     studentInfoById[studentIdByAddress[_studentAddress]].classes.push(_classId);
+    _isStudentInClass[_studentAddress] = true;
   }
+
 
   /**
    * @dev Checks if the student is a lifetime student.
    * @param _studentAddress The student address.
    * @return bool Whether the student is a lifetime student.
    */
-  function _isLifetimeStudent(address _studentAddress) private view returns (bool) {
+  function isLifetimeStudent(address _studentAddress) public view returns (bool) {
     return studentInfoById[studentIdByAddress[_studentAddress]].addr == _studentAddress;
+  }
+
+  /**
+   * @dev Checks if the student a lifetime student and not blocked.
+   * @param _studentAddress The student address.
+   * @return bool Whether the student a lifetime student and not blocked.
+   */
+  function isLifetimeStudentAndNotBlocked(address _studentAddress) public view returns (bool) {
+    return isLifetimeStudent(_studentAddress) && !studentInfoById[studentIdByAddress[_studentAddress]].blocked;
+  }
+
+
+  /**
+   * @dev Checks if the student exists with names.
+   * @param _firstName The first name.
+   * @param _midName The middle name.
+   * @param _lastName The last name.
+   * @return present Whether the student exists.
+   * @return studentId The student id. 0 if not exist.
+   */
+  function _isStudentExistsWithNames(string memory _firstName, string memory _midName, string memory _lastName) private view returns (bool present, uint256 studentId) {
+    bytes32 namesHash = keccak256(abi.encodePacked(_firstName, _midName, _lastName));
+    uint256 id = _studentIdByNames[namesHash];
+
+    StudentInfo memory studentInfo = studentInfoById[id];
+    bytes32 studentNamesHash = keccak256(abi.encodePacked(studentInfo.firstName, studentInfo.midName, studentInfo.lastName));
+
+    present = namesHash == studentNamesHash;
+
+    if (present) {
+      studentId = id;
+    }
   }
 }
