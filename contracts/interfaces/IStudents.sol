@@ -6,6 +6,12 @@ pragma solidity ^0.8.30;
  */
 interface IStudents {
   /**
+   * @dev Sets the address of the Classes contract.
+   * @param _classesContract Address of Classes contract
+   */
+  function setClassesContract(address _classesContract) external;
+
+  /**
    * @dev Checks if all provided addresses are registered students.
    * @param _addresses Array of addresses to validate.
    * @return True if all addresses are students, false otherwise.
@@ -13,10 +19,16 @@ interface IStudents {
   function validateAddressesAreStudents(address[] calldata _addresses) external view returns (bool);
 
   /**
-   * @dev Enrolls multiple students into a specific class.
+   * @dev Enrolls students into a specific class.
    * @param _studentAddresses List of student addresses to enroll.
-   * @param _name The class name.
-   * @param _year The academic year for the class.
+   * @param _classId The unique identifier of the class. Aka "1a-2025-2026".
    */
-  function enrollStudentsInClass(address[] calldata _studentAddresses, string calldata _name, uint256 _year) external;
+  function enrollStudentsInClass(address[] calldata _studentAddresses, string calldata _classId) external;
+
+  /**
+   * @dev Unenrolls students from a specific class.
+   * @param _studentAddresses List of student addresses to unenroll.
+   * @param _classId The unique identifier of the class. Aka "1a-2025-2026".
+   */
+  function unenrollStudentsFromClass(address[] calldata _studentAddresses, string calldata _classId) external;
 }

@@ -1,7 +1,28 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.30;
 
+/**
+ * @title IClasses
+ */
 interface IClasses {
-  function classIdByNameAndYear(string memory _className, uint256 _classYear) external pure returns (bytes32);
-  function enrollStudentsInClass(address[] calldata _studentAddresses, string memory _className, uint256 _classYear) external;
+  /**
+   * @dev Sets the address of the Students contract.
+   * @param _studentsContract Address of Students contract
+   */
+
+  function setStudentsContract(address _studentsContract) external;
+
+  /**
+   * @dev Enrolls students into a specific class.
+   * @param _studentAddresses List of student addresses to enroll.
+   * @param _classId The unique identifier of the class. Aka "1a-2025-2026".
+   */
+  function enrollStudentsInClass(address[] calldata _studentAddresses, string memory _classId) external;
+
+  /**
+   * @dev Unenrolls students from a specific class.
+   * @param _studentAddresses List of student addresses to unenroll.
+   * @param _classId The unique identifier of the class. Aka "1a-2025-2026".
+   */
+  function unenrollStudentsFromClass(address[] calldata _studentAddresses, string memory _classId) external;
 }
