@@ -16,7 +16,7 @@ interface IStudents {
    * @param _addresses Array of addresses to validate.
    * @return True if all addresses are students, false otherwise.
    */
-  function validateAddressesAreStudents(address[] calldata _addresses) external view returns (bool);
+  function validateAllAddressesAreStudents(address[] calldata _addresses) external view returns (bool);
 
   /**
    * @dev Enrolls students into a specific class.

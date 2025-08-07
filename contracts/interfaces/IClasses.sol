@@ -25,4 +25,10 @@ interface IClasses {
    * @param _classId The unique identifier of the class. Aka "1a-2025-2026".
    */
   function unenrollStudentsFromClass(address[] calldata _studentAddresses, string memory _classId) external;
+
+  /**
+   * @dev Checks if a class is active.
+   * @param _classId The unique identifier of the class. Aka "1a-2025-2026".
+   */
+  function isClassActive(string calldata _classId) external view returns (bool);
 }
